@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Play, Edit2, Trash2, BookOpen, Star, Brain, Zap, ExternalLink, Users, Database } from 'lucide-react';
+import { Plus, Play, Edit2, Trash2, ExternalLink } from 'lucide-react';
 import { CardForm } from './CardForm';
 import type { FlashcardData } from '../types';
 
@@ -135,65 +135,6 @@ export function ManagementMode({
 
             {/* Main Hero Content */}
             <div className="relative text-center py-16">
-              {/* Animated icon group */}
-              <div className="flex justify-center mb-8">
-                <div className="relative">
-                  <BookOpen className="w-20 h-20 text-blue-500 mx-auto" />
-                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                    <Star className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="absolute -bottom-2 -left-2 w-6 h-6 bg-green-400 rounded-full flex items-center justify-center">
-                    <Zap className="w-4 h-4 text-white" />
-                  </div>
-                </div>
-              </div>
-
-              <h2 className="text-4xl font-bold text-gray-800 mb-4">
-                Welcome to <span className="text-blue-600">Flash Card</span>
-              </h2>
-              <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-                Smart language learning made simple. Create flashcards with automatic definitions, 
-                pronunciations, and examples to accelerate your vocabulary growth.
-              </p>
-
-              {/* Usage Options Cards */}
-              <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-12">
-                {/* Local Storage Option */}
-                <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
-                  <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mx-auto mb-4">
-                    <Brain className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-3">Try Instantly</h3>
-                  <p className="text-gray-600 mb-4 text-sm leading-relaxed">
-                    Start learning right away with local storage. Your cards stay on this device - 
-                    perfect for quick practice sessions and experimenting.
-                  </p>
-                  <div className="flex items-center justify-center text-sm text-blue-600">
-                    <Database className="w-4 h-4 mr-1" />
-                    <span>Saved locally</span>
-                  </div>
-                </div>
-
-                {/* Cloud Storage Option */}
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-6 shadow-lg border-2 border-blue-200 hover:shadow-xl transition-all duration-300">
-                  <div className="flex items-center justify-center w-12 h-12 bg-blue-600 rounded-full mx-auto mb-4">
-                    <Users className="w-6 h-6 text-white" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                    Sign In & Sync
-                    <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">Recommended</span>
-                  </h3>
-                  <p className="text-gray-600 mb-4 text-sm leading-relaxed">
-                    Create an account to sync across devices, backup your progress, 
-                    and never lose your learning journey.
-                  </p>
-                  <div className="flex items-center justify-center text-sm text-blue-700">
-                    <Zap className="w-4 h-4 mr-1" />
-                    <span>Cloud synchronized</span>
-                  </div>
-                </div>
-              </div>
-
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
                 <button
@@ -215,40 +156,6 @@ export function ManagementMode({
                   <ExternalLink className="w-4 h-4" />
                   Learn More About This Project
                 </a>
-              </div>
-
-              {/* Features Preview */}
-              <div className="bg-white rounded-xl p-8 shadow-lg border border-gray-100 max-w-3xl mx-auto">
-                <h3 className="text-lg font-semibold text-gray-800 mb-6">What makes this special?</h3>
-                <div className="grid md:grid-cols-3 gap-6 text-left">
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                      <Zap className="w-4 h-4 text-blue-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-800 mb-1">Auto-Complete</h4>
-                      <p className="text-sm text-gray-600">Smart word suggestions as you type</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                      <Brain className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-800 mb-1">AI-Powered</h4>
-                      <p className="text-sm text-gray-600">Definitions and examples from Gemini</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                      <Star className="w-4 h-4 text-purple-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-800 mb-1">Voice Support</h4>
-                      <p className="text-sm text-gray-600">Pronunciation with text-to-speech</p>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
