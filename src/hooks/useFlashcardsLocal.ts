@@ -232,10 +232,6 @@ export function useFlashcardsLocal() {
     dispatch({ type: 'DELETE_CARD', payload: id });
   }, []);
 
-  const setCurrentIndex = useCallback((index: number) => {
-    dispatch({ type: 'SET_CURRENT_INDEX', payload: index });
-  }, []);
-
   const setMode = useCallback((mode: 'study' | 'management') => {
     dispatch({ type: 'SET_MODE', payload: mode });
   }, []);
