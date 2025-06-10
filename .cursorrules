@@ -1,0 +1,71 @@
+# Cursor Terminal Configuration Rules
+
+## Terminal Command Protocol
+
+When running terminal commands through the run_terminal_cmd tool:
+
+1. **Default**: Try running commands normally first
+2. **If hanging occurs**: Use the simple prompt workaround below
+
+### Hanging Workaround (if needed):
+
+If commands get stuck in "generating..." state:
+
+```bash
+# Set simple prompt for the session
+export PS1="➜ %1~ %# "
+export PROMPT="➜ %1~ %# "
+export RPS1=""
+export RPROMPT=""
+
+# Then run your command
+your-command-here
+```
+
+### Alternative: One-liner approach
+```bash
+# Run command with simple prompt in one line
+PS1="➜ %1~ %# " your-command-here
+```
+
+### Why This Works:
+
+- Complex themes like PowerLevel10k can cause Cursor to hang
+- Simple prompts allow proper command completion detection
+- This gives manual control over when to use the workaround
+- Maintains full theme functionality for manual terminal usage
+
+### Available Functions (if defined in shell):
+
+- `simple-prompt`: Switch to simple prompt
+- `restore-prompt`: Restore PowerLevel10k theme
+
+### Notes:
+
+- Test commands normally first - many work fine with PowerLevel10k
+- Only use the workaround when actual hanging occurs
+- The simple prompt approach is more reliable than theme switching
+- Remember that prompt changes only affect the current session
+
+### Example Usage:
+
+```bash
+# Instead of just running:
+npm install
+
+# Always run:
+simple-prompt && npm install
+
+# For multiple commands:
+simple-prompt && npm install && npm run dev
+
+# To restore theme after (optional):
+simple-prompt && npm install && restore-prompt
+```
+
+### Available Theme Aliases:
+
+- `simple-prompt`: Switch to simple prompt
+- `restore-prompt`: Restore PowerLevel10k theme
+
+This approach gives you the best of both worlds: compatibility with Cursor AI and full theme functionality for manual use. 
