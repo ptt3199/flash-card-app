@@ -1,6 +1,6 @@
 // Clerk configuration
 export const clerkConfig = {
-  publishableKey: import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || '',
+  publishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '',
 };
  
 // Check if Clerk is properly configured

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Plus, Play, Edit2, Trash2, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 import { CardForm } from './CardForm';
 import type { FlashcardData } from '../types';
 
@@ -147,15 +148,16 @@ export function ManagementMode({
                 
                 <div className="text-gray-400 text-sm">or</div>
                 
-                <a
-                  href="https://your-portfolio-website.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-300"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  Learn More About This Project
-                </a>
+                            <Link href="https://your-portfolio-website.com" legacyBehavior>
+              <a
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all duration-300"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Learn More About This Project
+              </a>
+            </Link>
               </div>
             </div>
           </div>
@@ -214,7 +216,7 @@ export function ManagementMode({
                     <div>
                       <h4 className="text-sm font-medium text-gray-700 mb-1">Example:</h4>
                       <p className="text-gray-600 text-sm italic line-clamp-2">
-                        "{card.examples[0]}"
+                        &ldquo;{card.examples[0]}&rdquo;
                       </p>
                     </div>
                   )}

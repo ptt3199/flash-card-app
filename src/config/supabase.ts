@@ -1,15 +1,27 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Supabase configuration
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 // Create Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Check if Supabase is properly configured
 export const isSupabaseConfigured = () => {
-  return !!supabaseUrl && !!supabaseAnonKey;
+  const hasUrl = !!supabaseUrl;
+  const hasKey = !!supabaseAnonKey;
+  
+  if (!hasUrl || !hasKey) {
+    console.warn('Supabase configuration missing:', { 
+      hasUrl, 
+      hasKey,
+      url: supabaseUrl ? '***configured***' : 'missing',
+      key: supabaseAnonKey ? '***configured***' : 'missing'
+    });
+  }
+  
+  return hasUrl && hasKey;
 };
 
 // Database types

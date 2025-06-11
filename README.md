@@ -79,10 +79,6 @@ npm >= 8.0.0
 
 ### Installation
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd flash-card-app
-
 # Install dependencies
 npm install
 
@@ -90,17 +86,22 @@ npm install
 cp .env.example .env.local
 ```
 
+> Note: This project is now a Next.js application.
+
 ### Environment Setup
+
+Create a .env.local file in your project root with the following:
+
 ```bash
 # Required for authentication
-VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
 
 # Required for database
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Optional for enhanced AI features
-VITE_GEMINI_API_KEY=your_gemini_api_key
+NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key
 ```
 
 ### Development
@@ -111,14 +112,11 @@ npm run dev
 # Build for production
 npm run build
 
-# Preview production build
-npm run preview
-
-# Type checking
-npm run type-check
-
 # Linting
 npm run lint
+
+# Start production server
+npm run start
 ```
 
 ## 📱 Usage

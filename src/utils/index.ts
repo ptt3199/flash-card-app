@@ -27,6 +27,7 @@ export const updateFlashcard = (
 });
 
 // Debounce function for API calls
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const debounce = <T extends (...args: any[]) => any>(
   func: T,
   wait: number
@@ -39,6 +40,7 @@ export const debounce = <T extends (...args: any[]) => any>(
 };
 
 // Throttle function for performance
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const throttle = <T extends (...args: any[]) => any>(
   func: T,
   limit: number

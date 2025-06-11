@@ -29,14 +29,14 @@ Create a `.env.local` file in your project root:
 
 ```env
 # Clerk Configuration
-VITE_CLERK_PUBLISHABLE_KEY=pk_test_your_clerk_key_here
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_your_clerk_key_here
 
 # Supabase Configuration  
-VITE_SUPABASE_URL=https://your-project-id.supabase.co
-VITE_SUPABASE_ANON_KEY=your_anon_key_here
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
 
 # Optional: Gemini AI API Key (for dictionary fallback)
-VITE_GEMINI_API_KEY=your_gemini_api_key_here
+NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 ## 5. Create Database Schema

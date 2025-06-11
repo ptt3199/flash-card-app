@@ -128,13 +128,6 @@ export function useFlashcardsCloud() {
     });
   }, [viewedHistory]);
 
-  // Load flashcards when user is available
-  useEffect(() => {
-    if (isLoaded && user) {
-      loadFlashcards();
-    }
-  }, [isLoaded, user]);
-
   const loadFlashcards = useCallback(async () => {
     if (!user) return;
 
@@ -159,7 +152,14 @@ export function useFlashcardsCloud() {
     } finally {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, [user, getToken, addToHistory]);
+  }, [user, getToken]);
+
+  // Load flashcards when user is available
+  useEffect(() => {
+    if (isLoaded && user) {
+      loadFlashcards();
+    }
+  }, [isLoaded, user, loadFlashcards]);
 
   // Migrate local data to cloud on first sign-in
   const migrateLocalData = useCallback(async () => {
