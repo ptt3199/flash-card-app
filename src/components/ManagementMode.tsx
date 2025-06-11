@@ -216,7 +216,7 @@ export function ManagementMode({
                     <div>
                       <h4 className="text-sm font-medium text-gray-700 mb-1">Example:</h4>
                       <p className="text-gray-600 text-sm italic line-clamp-2">
-                        "{card.examples[0]}"
+                        &ldquo;{card.examples[0]}&rdquo;
                       </p>
                     </div>
                   )}

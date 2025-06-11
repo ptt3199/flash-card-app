@@ -167,7 +167,7 @@ export function LocalApp({ onBackToLogin }: LocalAppProps) {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">You're in Trial Mode</h3>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">You&apos;re in Trial Mode</h3>
                   <p className="text-gray-600 mb-3">
                     Your flashcards are saved locally on this device. Sign in to sync across devices and never lose your progress.
                   </p>

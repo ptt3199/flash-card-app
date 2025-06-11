@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router';
 import { StudyMode } from '../components/StudyMode';
 import { useFlashcards } from '../contexts/FlashcardContext';
+import { GetServerSideProps } from 'next';
 
 export default function StudyPage() {
   const router = useRouter();
@@ -35,3 +36,10 @@ export default function StudyPage() {
     />
   );
 }
+
+// Force server-side rendering to avoid prerendering issues with Clerk
+export const getServerSideProps: GetServerSideProps = async () => {
+  return {
+    props: {},
+  };
+};

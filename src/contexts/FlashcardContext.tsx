@@ -7,7 +7,11 @@ type FlashcardContextType = ReturnType<typeof useFlashcardsCloud>;
 // Create the context with an undefined initial value
 const FlashcardContext = createContext<FlashcardContextType | undefined>(undefined);
 
-export function FlashcardProvider({ children }: { children: ReactNode }) {
+interface FlashcardProviderProps {
+  children: ReactNode;
+}
+
+export function FlashcardProvider({ children }: FlashcardProviderProps) {
   const flashcardData = useFlashcardsCloud();
 
   return (
@@ -17,7 +21,7 @@ export function FlashcardProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useFlashcards() {
+export function useFlashcards(): FlashcardContextType {
   const context = useContext(FlashcardContext);
   if (context === undefined) {
     throw new Error('useFlashcards must be used within a FlashcardProvider');

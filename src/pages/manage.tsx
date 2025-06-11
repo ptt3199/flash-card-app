@@ -2,6 +2,7 @@ import { useRouter } from 'next/router';
 import { ManagementMode } from '../components/ManagementMode';
 import { useFlashcards } from '../contexts/FlashcardContext';
 import { Header } from '../components/Header';
+import { GetServerSideProps } from 'next';
 
 export default function ManagePage() {
   const router = useRouter();
@@ -35,3 +36,10 @@ export default function ManagePage() {
     </>
   );
 }
+
+// Force server-side rendering to avoid prerendering issues with Clerk
+export const getServerSideProps: GetServerSideProps = async () => {
+  return {
+    props: {},
+  };
+};

@@ -21,7 +21,7 @@ export class WordService {
 
     try {
       // Primary: Try Dictionary API first
-      console.log(`Fetching word data for "${normalizedWord}" from Dictionary API...`);
+      // Fetching word data from Dictionary API
       return await dictionaryApi.fetchWordData(normalizedWord);
     } catch (dictionaryError) {
       console.warn('Dictionary API failed, trying Gemini API...', dictionaryError);
@@ -29,7 +29,7 @@ export class WordService {
       try {
         // Fallback: Try Gemini API
         if (geminiApi.isConfigured()) {
-          console.log(`Fetching word data for "${normalizedWord}" from Gemini API...`);
+          // Fallback: Fetching word data from Gemini API
           return await geminiApi.fetchWordData(normalizedWord);
         } else {
           console.warn('Gemini API not configured, using basic fallback');

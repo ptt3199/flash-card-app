@@ -1,6 +1,7 @@
 import { useUser } from '@clerk/clerk-react';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
+import { GetServerSideProps } from 'next';
 
 export default function IndexPage() {
   const { isSignedIn, isLoaded } = useUser();
@@ -22,4 +23,11 @@ export default function IndexPage() {
       </div>
     </div>
   );
-} 
+}
+
+// Force server-side rendering to avoid prerendering issues with Clerk
+export const getServerSideProps: GetServerSideProps = async () => {
+  return {
+    props: {},
+  };
+}; 

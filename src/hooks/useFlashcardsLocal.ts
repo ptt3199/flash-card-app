@@ -121,18 +121,6 @@ export function useFlashcardsLocal() {
     });
   }, [viewedHistory]);
 
-  // Load flashcards from localStorage on mount
-  useEffect(() => {
-    loadFlashcards();
-  }, []);
-
-  // Save to localStorage whenever cards change
-  useEffect(() => {
-    if (state.cards.length >= 0) { // Save even empty array
-      setStorageItem('flashcards', state.cards);
-    }
-  }, [state.cards]);
-
   const loadFlashcards = useCallback(() => {
     dispatch({ type: 'SET_LOADING', payload: true });
     
@@ -152,6 +140,18 @@ export function useFlashcardsLocal() {
       dispatch({ type: 'SET_LOADING', payload: false });
     }
   }, []);
+
+  // Load flashcards from localStorage on mount
+  useEffect(() => {
+    loadFlashcards();
+  }, [loadFlashcards]);
+
+  // Save to localStorage whenever cards change
+  useEffect(() => {
+    if (state.cards.length >= 0) { // Save even empty array
+      setStorageItem('flashcards', state.cards);
+    }
+  }, [state.cards]);
 
   // Helper function to generate ID for local cards
   const generateId = () => `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

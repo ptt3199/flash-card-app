@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Search, Loader2, AlertCircle } from 'lucide-react';
 import type { FlashcardData } from '../types';
 import { wordService } from '../services/wordService';
@@ -28,43 +28,40 @@ export function CardForm({ onSubmit, onCancel, initialData, isLoading = false }:
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // Debounced auto-fetch function
-  const debouncedAutoFetch = useCallback(
-    debounce(async (word: string) => {
-      if (!word.trim() || word === initialData?.word) return;
+  const debouncedAutoFetch = debounce(async (word: string) => {
+    if (!word.trim() || word === initialData?.word) return;
+    
+    if (!wordService.isValidWord(word)) {
+      setAutoFetchError('Please enter a valid English word');
+      return;
+    }
+
+    setIsAutoFetching(true);
+    setAutoFetchError(null);
+
+    try {
+      const wordData = await wordService.fetchWordData(word);
       
-      if (!wordService.isValidWord(word)) {
-        setAutoFetchError('Please enter a valid English word');
-        return;
-      }
-
-      setIsAutoFetching(true);
-      setAutoFetchError(null);
-
-      try {
-        const wordData = await wordService.fetchWordData(word);
+      // Only update if the word hasn't changed while we were fetching
+      setFormData(current => {
+        if (current.word.toLowerCase() !== word.toLowerCase()) return current;
         
-        // Only update if the word hasn't changed while we were fetching
-        setFormData(current => {
-          if (current.word.toLowerCase() !== word.toLowerCase()) return current;
-          
-          return {
-            ...current,
-            meaning: wordData.meaning || current.meaning,
-            pronunciation: wordData.pronunciation || current.pronunciation,
-            partOfSpeech: wordData.partOfSpeech || current.partOfSpeech,
-            examples: wordData.examples?.join('\n') || current.examples,
-            synonyms: wordData.synonyms?.join(', ') || current.synonyms,
-            antonyms: wordData.antonyms?.join(', ') || current.antonyms,
-          };
-        });
-      } catch (error) {
-        setAutoFetchError(error instanceof Error ? error.message : 'Failed to fetch word data');
-      } finally {
-        setIsAutoFetching(false);
-      }
-    }, 1000),
-    [initialData?.word]
-  );
+        return {
+          ...current,
+          meaning: wordData.meaning || current.meaning,
+          pronunciation: wordData.pronunciation || current.pronunciation,
+          partOfSpeech: wordData.partOfSpeech || current.partOfSpeech,
+          examples: wordData.examples?.join('\n') || current.examples,
+          synonyms: wordData.synonyms?.join(', ') || current.synonyms,
+          antonyms: wordData.antonyms?.join(', ') || current.antonyms,
+        };
+      });
+    } catch (error) {
+      setAutoFetchError(error instanceof Error ? error.message : 'Failed to fetch word data');
+    } finally {
+      setIsAutoFetching(false);
+    }
+  }, 1000);
 
   const handleWordChange = (word: string) => {
     setFormData(prev => ({ ...prev, word }));

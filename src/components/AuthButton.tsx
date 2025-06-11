@@ -1,4 +1,5 @@
 import { SignInButton, SignOutButton, useUser } from '@clerk/clerk-react';
+import Image from 'next/image';
 
 export function AuthButton() {
   const { isSignedIn, user, isLoaded } = useUser();
@@ -16,9 +17,11 @@ export function AuthButton() {
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
           {user.imageUrl && (
-            <img
+            <Image
               src={user.imageUrl}
               alt={user.fullName || 'User'}
+              width={32}
+              height={32}
               className="h-8 w-8 rounded-full"
             />
           )}

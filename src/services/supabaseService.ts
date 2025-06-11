@@ -1,5 +1,4 @@
 import { supabase } from '../config/supabase';
-import { createClient } from '@supabase/supabase-js';
 import type { FlashcardData } from '../types';
 import { getCurrentTimestamp } from '../utils';
 
@@ -15,7 +14,7 @@ export class SupabaseService {
 
   // For now, use the standard Supabase client
   // TODO: Implement proper Clerk + Supabase RLS integration later
-  private createAuthenticatedClient(token?: string) {
+  private createAuthenticatedClient(_token?: string) {
     // For now, just return the standard client and rely on user_id filtering
     // This is safe as long as we always filter by user_id in our queries
     return supabase;
@@ -24,7 +23,7 @@ export class SupabaseService {
   // Get all flashcards for current user
   async getFlashcards(userId: string, sessionToken?: string): Promise<FlashcardData[]> {
     try {
-      console.log('Fetching flashcards for user:', userId);
+      // Fetching flashcards for user
       const client = this.createAuthenticatedClient(sessionToken);
 
       const { data, error } = await client
@@ -45,7 +44,7 @@ export class SupabaseService {
         throw error;
       }
 
-      console.log('Fetched flashcards:', data?.length || 0);
+              // Fetched flashcards successfully
       return data ? data.map(this.transformFromDatabase) : [];
     } catch (error) {
       console.error('Error fetching flashcards:', error);
@@ -159,6 +158,7 @@ export class SupabaseService {
   }
 
   // Transform database row to FlashcardData
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private transformFromDatabase(dbRow: any): FlashcardData {
     return {
       id: dbRow.id,

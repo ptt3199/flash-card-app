@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Header } from '../components/Header';
 import { useSettings } from '../hooks/useSettings';
 import { Save, Loader2 } from 'lucide-react';
+import { GetServerSideProps } from 'next';
 
 export default function SettingsPage() {
   const { settings: storedSettings, setSettings } = useSettings();
@@ -110,3 +111,10 @@ export default function SettingsPage() {
     </>
   );
 }
+
+// Force server-side rendering to avoid prerendering issues with Clerk
+export const getServerSideProps: GetServerSideProps = async () => {
+  return {
+    props: {},
+  };
+};
