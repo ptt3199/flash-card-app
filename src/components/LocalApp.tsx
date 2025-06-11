@@ -1,6 +1,7 @@
 import { StudyMode } from './StudyMode';
 import { ManagementMode } from './ManagementMode';
 import { AuthButton } from './AuthButton';
+import Link from 'next/link';
 import { useFlashcardsLocal } from '../hooks/useFlashcardsLocal';
 import { ArrowLeft } from 'lucide-react';
 import { SignInButton } from '@clerk/clerk-react';
@@ -50,12 +51,14 @@ export function LocalApp({ onBackToLogin }: LocalAppProps) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center">
-                <h1 className="text-xl font-semibold text-gray-900">
-                  Flash Card
-                  <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                    Trial Mode
-                  </span>
-                </h1>
+                            <Link href="/">
+              <h1 className="text-xl font-semibold text-gray-900 cursor-pointer">
+                Flash Card
+                <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                  Trial Mode
+                </span>
+              </h1>
+            </Link>
                 <span className="ml-4 text-sm text-gray-500">
                   {hasCards ? `${mode === 'study' ? 'Study' : 'Manage'} Mode` : 'Getting Started'}
                 </span>

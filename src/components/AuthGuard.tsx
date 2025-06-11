@@ -1,7 +1,6 @@
-import { useState } from 'react';
+import { useRouter } from 'next/router';
 import { useUser } from '@clerk/clerk-react';
 import { AuthButton } from './AuthButton';
-import { LocalApp } from './LocalApp';
 import { BookOpen, Star, Brain, Zap, ExternalLink, Users, Database, Shield } from 'lucide-react';
 
 interface AuthGuardProps {
@@ -9,8 +8,8 @@ interface AuthGuardProps {
 }
 
 export function AuthGuard({ children }: AuthGuardProps) {
+  const router = useRouter();
   const { isSignedIn, isLoaded } = useUser();
-  const [useLocalMode, setUseLocalMode] = useState(false);
 
   if (!isLoaded) {
     return (
@@ -23,12 +22,20 @@ export function AuthGuard({ children }: AuthGuardProps) {
     );
   }
 
-  // If user chose local mode, show LocalApp
-  if (useLocalMode && !isSignedIn) {
-    return <LocalApp onBackToLogin={() => setUseLocalMode(false)} />;
+  // Redirect signed-in users from /local to /manage
+  if (isSignedIn && router.pathname === '/local') {
+    router.replace('/manage');
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting...</p>
+        </div>
+      </div>
+    );
   }
 
-  if (!isSignedIn) {
+  if (!isSignedIn && router.pathname !== '/local') {
     return (
       <div className="min-h-screen bg-gray-50">
         {/* Enhanced Sign-in Landing Page */}
@@ -80,10 +87,10 @@ export function AuthGuard({ children }: AuthGuardProps) {
                     <Database className="w-4 h-4 mr-1" />
                     <span>Saved on this device</span>
                   </div>
-                  <button 
-                    onClick={() => setUseLocalMode(true)}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                  >
+                                <button
+                onClick={() => router.push('/local')}
+                className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
                     Try Without Account
                   </button>
                 </div>

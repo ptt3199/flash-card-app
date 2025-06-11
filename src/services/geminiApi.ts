@@ -15,7 +15,7 @@ export class GeminiApiService {
 
   private constructor() {
     // Get API key from environment variables
-    this.apiKey = import.meta.env.VITE_GEMINI_API_KEY || null;
+    this.apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY || null;
   }
 
   async fetchWordData(word: string): Promise<WordData> {

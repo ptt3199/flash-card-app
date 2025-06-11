@@ -3,9 +3,9 @@
 ## Technology Stack
 
 ### Frontend Framework
-- **React 18**: Latest stable version với concurrent features
+- **Next.js 14**: Full-stack React framework with file-based routing
+- **React 19**: Latest stable version with concurrent features
 - **TypeScript 5**: Type safety, better DX, future-proof
-- **Vite 5**: Fast build tool, HMR, optimized bundles
 
 ### Styling & UI
 - **TailwindCSS 3**: Utility-first, responsive design, dark mode support
@@ -14,7 +14,7 @@
 - **Framer Motion** (optional): Smooth animations for card flips
 
 ### State Management
-- **React Hooks**: useState, useEffect, useReducer
+- **React Hooks & Context**: useState, useEffect, useReducer, useContext for global state
 - **Context API**: Global state for app mode, settings
 - **Custom Hooks**: Encapsulated logic for reusability
 
@@ -47,7 +47,7 @@
 - **TypeScript**: Strict type checking enabled
 
 ### Build & Deployment
-- **Vite**: Production optimized builds
+- **Next.js**: Production optimized builds
 - **Vercel**: Static site hosting, CDN, automatic deployments
 - **Environment Variables**: API keys, configuration
 
@@ -105,7 +105,7 @@ npm install
 npm run dev
 
 # Type checking
-npm run type-check
+next lint
 
 # Linting
 npm run lint
@@ -114,15 +114,16 @@ npm run lint
 npm run build
 
 # Preview production build
-npm run preview
+npm run start
 ```
 
 ### Environment Variables
 ```bash
 # .env.local
-VITE_GEMINI_API_KEY=your_gemini_api_key_here
-VITE_APP_VERSION=1.0.0
-VITE_DEBUG_MODE=false
+NEXT_PUBLIC_GEMINI_API_KEY=your_gemini_api_key_here
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_key
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_key
 ```
 
 ## Dependencies
@@ -139,8 +140,7 @@ VITE_DEBUG_MODE=false
 ### Build Dependencies
 ```json
 {
-  "@vitejs/plugin-react": "^4.0.0",
-  "vite": "^5.0.0",
+  "next": "^14.2.5",
   "tailwindcss": "^3.3.0",
   "autoprefixer": "^10.4.0",
   "postcss": "^8.4.0"
@@ -212,40 +212,8 @@ VITE_DEBUG_MODE=false
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "framework": "vite",
-  "functions": {
-    "app/**/*": {
-      "runtime": "nodejs18.x"
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+  "framework": "nextjs"
 }
-```
-
-### Build Optimization
-```typescript
-// vite.config.ts
-export default defineConfig({
-  plugins: [react()],
-  build: {
-    outDir: 'dist',
-    sourcemap: false,
-    minify: 'terser',
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          utils: ['nanoid', 'clsx']
-        }
-      }
-    }
-  }
-});
 ```
 
 ## Future Technical Considerations
