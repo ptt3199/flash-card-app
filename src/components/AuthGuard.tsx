@@ -22,8 +22,8 @@ export function AuthGuard({ children }: AuthGuardProps) {
     );
   }
 
-  // Redirect signed-in users from /local to /manage
-  if (isSignedIn && router.pathname === '/local') {
+  // Redirect signed-in users from / and /local to /manage
+  if (isSignedIn && (router.pathname === '/' || router.pathname === '/local')) {
     router.replace('/manage');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">

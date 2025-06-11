@@ -6,7 +6,7 @@ export default function LocalPage() {
   const router = useRouter();
 
   return (
-    <LocalApp onBackToLogin={() => router.push('/')} />
+    <LocalApp onBackToHome={() => router.push('/')} />
   );
 }
 

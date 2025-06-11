@@ -7,10 +7,10 @@ import { ArrowLeft } from 'lucide-react';
 import { SignInButton } from '@clerk/clerk-react';
 
 interface LocalAppProps {
-  onBackToLogin: () => void;
+  onBackToHome: () => void;
 }
 
-export function LocalApp({ onBackToLogin }: LocalAppProps) {
+export function LocalApp({ onBackToHome }: LocalAppProps) {
   const {
     cards,
     currentIndex,
@@ -99,7 +99,7 @@ export function LocalApp({ onBackToLogin }: LocalAppProps) {
                 </SignInButton>
                   
                   <button
-                    onClick={onBackToLogin}
+                    onClick={onBackToHome}
                     className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     <ArrowLeft className="w-4 h-4" />
