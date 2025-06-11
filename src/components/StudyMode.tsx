@@ -1,44 +1,80 @@
 import { useEffect, useState } from 'react';
 import { X, RotateCcw, History } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Flashcard } from './Flashcard';
 import { useKeyboard } from '../hooks/useKeyboard';
 import { isTouchDevice } from '../utils';
 import type { FlashcardData } from '../types';
 
 interface StudyModeProps {
-  cards: FlashcardData[];
-  currentIndex: number;
-  isFlipped: boolean;
-  viewedHistory: string[];
-  historyIndex: number;
-  onFlip: () => void;
-  onNext: () => void;
-  onPrevious: () => void;
-  onExit: () => void;
+  flashcards?: FlashcardData[];
 }
 
-export function StudyMode({
-  cards,
-  currentIndex,
-  isFlipped,
-  viewedHistory,
-  historyIndex,
-  onFlip,
-  onNext,
-  onPrevious,
-  onExit,
-}: StudyModeProps) {
-  const currentCard = cards[currentIndex];
-  const isTouch = isTouchDevice();
+export function StudyMode({ flashcards = [] }: StudyModeProps) {
+  const navigate = useNavigate();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isFlipped, setIsFlipped] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [viewedHistory, setViewedHistory] = useState<string[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const isTouch = isTouchDevice();
+
+  const currentCard = flashcards[currentIndex];
+
+  // If no cards available, show no cards message (but don't redirect, let StudyPage handle that)
+  if (!currentCard) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">No cards to study</h2>
+          <button
+            onClick={() => navigate('/')}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Add Cards
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Navigation functions
+  const handleFlip = () => setIsFlipped(!isFlipped);
+  
+  const handleNext = () => {
+    if (currentIndex < flashcards.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setIsFlipped(false);
+      addToHistory(currentCard.id);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+      setIsFlipped(false);
+      addToHistory(currentCard.id);
+    }
+  };
+
+  const addToHistory = (cardId: string) => {
+    setViewedHistory(prev => {
+      const newHistory = [...prev];
+      if (newHistory[newHistory.length - 1] !== cardId) {
+        newHistory.push(cardId);
+      }
+      return newHistory;
+    });
+    setHistoryIndex(-1);
+  };
 
   // Keyboard shortcuts
   useKeyboard({
-    ' ': onFlip,
-    'ArrowLeft': onPrevious,
-    'ArrowRight': onNext,
-    'Escape': onExit,
-    'h': () => setShowHistory(!showHistory), 
+    ' ': handleFlip,
+    'ArrowLeft': handlePrevious,
+    'ArrowRight': handleNext,
+    'Escape': () => navigate('/'),
+    'h': () => setShowHistory(!showHistory),
   });
 
   // Touch gestures
@@ -62,9 +98,9 @@ export function StudyMode({
       // Only trigger if horizontal swipe is more significant than vertical
       if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
         if (diffX > 0) {
-          onNext(); // Swipe left = next
+          handleNext(); // Swipe left = next
         } else {
-          onPrevious(); // Swipe right = previous
+          handlePrevious(); // Swipe right = previous
         }
       }
     };
@@ -76,23 +112,7 @@ export function StudyMode({
       document.removeEventListener('touchstart', handleTouchStart);
       document.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [onNext, onPrevious, isTouch]);
-
-  if (!currentCard) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">No cards to study</h2>
-          <button
-            onClick={onExit}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Add Cards
-          </button>
-        </div>
-      </div>
-    );
-  }
+  }, [handleNext, handlePrevious, isTouch]);
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col">
@@ -100,7 +120,7 @@ export function StudyMode({
       <div className="bg-white shadow-sm border-b border-gray-200 px-4 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <button
-            onClick={onExit}
+            onClick={() => navigate('/')}
             className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
           >
             <X className="w-5 h-5" />
@@ -109,13 +129,13 @@ export function StudyMode({
 
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-600">
-              {currentIndex + 1} of {cards.length}
+              {currentIndex + 1} of {flashcards.length}
             </span>
             
             <div className="w-32 bg-gray-200 rounded-full h-2">
               <div
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${((currentIndex + 1) / cards.length) * 100}%` }}
+                style={{ width: `${((currentIndex + 1) / flashcards.length) * 100}%` }}
               />
             </div>
           </div>
@@ -130,7 +150,7 @@ export function StudyMode({
             </button>
             
             <button
-              onClick={onFlip}
+              onClick={handleFlip}
               className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <RotateCcw className="w-5 h-5" />
@@ -146,7 +166,7 @@ export function StudyMode({
           <Flashcard
             card={currentCard}
             isFlipped={isFlipped}
-            onFlip={onFlip}
+            onFlip={handleFlip}
             className="mx-auto h-[32rem] w-full max-w-3xl"
           />
         </div>
@@ -167,7 +187,7 @@ export function StudyMode({
             </div>
             <div className="space-y-2">
               {viewedHistory.slice().reverse().map((cardId, index) => {
-                const card = cards.find(c => c.id === cardId);
+                const card = flashcards.find(c => c.id === cardId);
                 const isCurrentCard = historyIndex === viewedHistory.length - 1 - index;
                 
                 if (!card) return null;
@@ -197,30 +217,21 @@ export function StudyMode({
       <div className="bg-white border-t border-gray-200 px-4 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <button
-            onClick={onPrevious}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={cards.length <= 1}
+            onClick={handlePrevious}
+            disabled={currentIndex === 0}
+            className="px-4 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span className="hidden sm:inline">Previous word (←)</span>
+            ← Previous
           </button>
-
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            {isTouch ? (
-              <span>Swipe to navigate • Tap to flip</span>
-            ) : (
-              <span>← previous • → random next • Space to flip • Esc to exit</span>
-            )}
-          </div>
-
           <button
-            onClick={onNext}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={cards.length <= 1}
+            onClick={handleNext}
+            disabled={currentIndex === flashcards.length - 1}
+            className="px-4 py-2 text-gray-600 hover:text-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <span className="hidden sm:inline">Random Next (→)</span>
+            Next →
           </button>
         </div>
       </div>
     </div>
   );
-} 
+}

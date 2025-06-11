@@ -1,382 +1,179 @@
-import { useReducer, useCallback, useEffect, useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useUser, useAuth } from '@clerk/clerk-react';
-import type { AppState, AppAction, FlashcardData } from '../types';
-import { supabaseService } from '../services/supabaseService';
-import { getStorageItem, setStorageItem } from '../utils';
-
-const initialState: AppState = {
-  cards: [],
-  currentIndex: 0,
-  mode: 'study',
-  isFlipped: false,
-  isLoading: false,
-  error: null,
-};
-
-function appReducer(state: AppState, action: AppAction): AppState {
-  switch (action.type) {
-    case 'SET_CARDS':
-      return {
-        ...state,
-        cards: action.payload,
-        currentIndex: Math.min(state.currentIndex, Math.max(0, action.payload.length - 1)),
-      };
-
-    case 'ADD_CARD':
-      return {
-        ...state,
-        cards: [...state.cards, action.payload],
-      };
-
-    case 'UPDATE_CARD':
-      return {
-        ...state,
-        cards: state.cards.map(card =>
-          card.id === action.payload.id
-            ? { ...card, ...action.payload.data, updatedAt: new Date().toISOString() }
-            : card
-        ),
-      };
-
-    case 'DELETE_CARD':
-      const newCards = state.cards.filter(card => card.id !== action.payload);
-      return {
-        ...state,
-        cards: newCards,
-        currentIndex: Math.min(state.currentIndex, Math.max(0, newCards.length - 1)),
-      };
-
-    case 'SET_CURRENT_INDEX':
-      return {
-        ...state,
-        currentIndex: Math.max(0, Math.min(action.payload, state.cards.length - 1)),
-        isFlipped: false,
-      };
-
-    case 'SET_MODE':
-      return {
-        ...state,
-        mode: action.payload,
-        isFlipped: false,
-        error: null,
-      };
-
-    case 'FLIP_CARD':
-      return {
-        ...state,
-        isFlipped: !state.isFlipped,
-      };
-
-    case 'NEXT_CARD':
-      const nextIndex = state.currentIndex < state.cards.length - 1 
-        ? state.currentIndex + 1 
-        : 0;
-      return {
-        ...state,
-        currentIndex: nextIndex,
-        isFlipped: false,
-      };
-
-    case 'PREVIOUS_CARD':
-      const prevIndex = state.currentIndex > 0 
-        ? state.currentIndex - 1 
-        : state.cards.length - 1;
-      return {
-        ...state,
-        currentIndex: prevIndex,
-        isFlipped: false,
-      };
-
-    case 'SET_LOADING':
-      return {
-        ...state,
-        isLoading: action.payload,
-      };
-
-    case 'SET_ERROR':
-      return {
-        ...state,
-        error: action.payload,
-        isLoading: false,
-      };
-
-    default:
-      return state;
-  }
-}
+import { supabase } from '../config/supabase';
+import type { FlashcardData } from '../types';
 
 export function useFlashcardsCloud() {
-  const { user, isLoaded } = useUser();
-  const { getToken } = useAuth();
-  const [state, dispatch] = useReducer(appReducer, initialState);
-  const [viewedCardIds, setViewedCardIds] = useState<Set<string>>(new Set());
-  const [viewedHistory, setViewedHistory] = useState<string[]>([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
+  const { user } = useUser();
+  const { isSignedIn } = useAuth();
+  const [flashcards, setFlashcards] = useState<FlashcardData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [history, setHistory] = useState<string[]>([]);
+  const [hasFetched, setHasFetched] = useState(false);
 
-  // Helper function to add to history without duplicates
-  const addToHistory = useCallback((cardId: string) => {
-    setViewedHistory(prev => {
-      // Remove any existing instances of this card
-      const filtered = prev.filter(id => id !== cardId);
-      // Add to end
-      return [...filtered, cardId];
-    });
-    setHistoryIndex(() => {
-      // Find new index after deduplication
-      const newHistory = viewedHistory.filter(id => id !== cardId);
-      return newHistory.length; // Points to the newly added card
-    });
-  }, [viewedHistory]);
-
-  // Load flashcards when user is available
-  useEffect(() => {
-    if (isLoaded && user) {
-      loadFlashcards();
+  // Fetch flashcards from Supabase
+  const fetchFlashcards = useCallback(async () => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
     }
-  }, [isLoaded, user]);
-
-  const loadFlashcards = useCallback(async () => {
-    if (!user) return;
-
-    dispatch({ type: 'SET_LOADING', payload: true });
+    
+    setError(null);
+    setLoading(true);
     
     try {
-      const token = await getToken({ template: 'supabase' });
-      const cards = await supabaseService.getFlashcards(user.id, token || undefined);
-      dispatch({ type: 'SET_CARDS', payload: cards });
-      
-      // Always start in management mode to let user choose what to do
-      dispatch({ type: 'SET_MODE', payload: 'management' });
-      
-      if (cards.length > 0) {
-        // Prepare for study mode but don't start automatically
-        const randomIndex = Math.floor(Math.random() * cards.length);
-        dispatch({ type: 'SET_CURRENT_INDEX', payload: randomIndex });
+      const { data, error: fetchError } = await supabase
+        .from('flashcards')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true });
+
+      if (fetchError) {
+        console.error('Supabase error:', fetchError);
+        throw new Error(`Failed to fetch flashcards: ${fetchError.message}`);
       }
-    } catch (error) {
-      console.error('Failed to load flashcards:', error);
-      dispatch({ type: 'SET_ERROR', payload: 'Failed to load flashcards' });
+
+      console.log('Fetched flashcards:', data);
+      setFlashcards(data || []);
+      setHasFetched(true);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      console.error('Fetch error:', err);
+      setError(errorMessage);
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
+      setLoading(false);
     }
-  }, [user, getToken, addToHistory]);
+  }, [user?.id]);
 
-  // Migrate local data to cloud on first sign-in
-  const migrateLocalData = useCallback(async () => {
-    if (!user) return;
+  // Add flashcard
+  const addFlashcard = useCallback(async (cardData: Omit<FlashcardData, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!user?.id) return;
 
-    const localCards = getStorageItem<FlashcardData[]>('flashcards', []);
-    if (localCards.length === 0) return;
+    setLoading(true);
+    setError(null);
 
-    dispatch({ type: 'SET_LOADING', payload: true });
-    
     try {
-      const token = await getToken({ template: 'supabase' });
-      await supabaseService.syncLocalData(user.id, localCards, token || undefined);
-      
-      // Clear local storage after successful migration
-      setStorageItem('flashcards', []);
-      setStorageItem('flashcards_migrated', true);
-      
-      // Reload cards from database
-      await loadFlashcards();
-    } catch (error) {
-      console.error('Failed to migrate local data:', error);
-      dispatch({ type: 'SET_ERROR', payload: 'Failed to migrate local data' });
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  }, [user, getToken, loadFlashcards]);
+      const { data, error: insertError } = await supabase
+        .from('flashcards')
+        .insert([{
+          ...cardData,
+          user_id: user.id
+        }])
+        .select()
+        .single();
 
-  // Check if migration is needed
-  useEffect(() => {
-    if (isLoaded && user) {
-      const isMigrated = getStorageItem('flashcards_migrated', false);
-      if (!isMigrated) {
-        migrateLocalData();
+      if (insertError) {
+        throw new Error(`Failed to add flashcard: ${insertError.message}`);
       }
-    }
-  }, [isLoaded, user, migrateLocalData]);
 
-  // Helper function to get a random unviewed card
-  const getRandomUnviewedCard = useCallback(() => {
-    const unviewedCards = state.cards.filter(card => !viewedCardIds.has(card.id));
-    
-    // If all cards have been viewed, reset and start over
-    if (unviewedCards.length === 0) {
-      setViewedCardIds(new Set());
-      return state.cards[Math.floor(Math.random() * state.cards.length)];
+      setFlashcards(prev => [...prev, data]);
+      setHistory(prev => [...prev, `Added: "${cardData.word}"`]);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
     }
-    
-    const randomCard = unviewedCards[Math.floor(Math.random() * unviewedCards.length)];
-    return randomCard;
-  }, [state.cards, viewedCardIds]);
+  }, [user?.id]);
 
-  // Helper function to mark card as viewed and go to it
-  const goToRandomCard = useCallback(() => {
-    if (state.cards.length === 0) return;
-    
-    const randomCard = getRandomUnviewedCard();
-    const cardIndex = state.cards.findIndex(card => card.id === randomCard.id);
-    
-    if (cardIndex !== -1) {
-      dispatch({ type: 'SET_CURRENT_INDEX', payload: cardIndex });
-      setViewedCardIds(prev => new Set([...prev, randomCard.id]));
-      
-      // Add to history
-      addToHistory(randomCard.id);
-    }
-  }, [state.cards, getRandomUnviewedCard, addToHistory]);
+  // Update flashcard
+  const updateFlashcard = useCallback(async (id: string, updates: Partial<FlashcardData>) => {
+    if (!user?.id) return;
 
-  // Helper function to go back in history (no new history entry)
-  const goToPreviousCard = useCallback(() => {
-    if (historyIndex <= 0) return;
-    
-    const previousCardId = viewedHistory[historyIndex - 1];
-    const cardIndex = state.cards.findIndex(card => card.id === previousCardId);
-    
-    if (cardIndex !== -1) {
-      dispatch({ type: 'SET_CURRENT_INDEX', payload: cardIndex });
-      setHistoryIndex(prev => prev - 1);
-    }
-  }, [historyIndex, viewedHistory, state.cards]);
+    setLoading(true);
+    setError(null);
 
-  // Helper function to go forward in history (if available)
-  const goToNextInHistory = useCallback(() => {
-    if (historyIndex >= viewedHistory.length - 1) {
-      // No forward history, get random card
-      goToRandomCard();
-    } else {
-      // Go forward in existing history
-      const nextCardId = viewedHistory[historyIndex + 1];
-      const cardIndex = state.cards.findIndex(card => card.id === nextCardId);
-      
-      if (cardIndex !== -1) {
-        dispatch({ type: 'SET_CURRENT_INDEX', payload: cardIndex });
-        setHistoryIndex(prev => prev + 1);
+    try {
+      const { data, error: updateError } = await supabase
+        .from('flashcards')
+        .update(updates)
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (updateError) {
+        throw new Error(`Failed to update flashcard: ${updateError.message}`);
       }
-    }
-  }, [historyIndex, viewedHistory, state.cards, goToRandomCard]);
 
-  // Actions
-  const addCard = useCallback(async (cardData: Omit<FlashcardData, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (!user) return;
-
-    dispatch({ type: 'SET_LOADING', payload: true });
-    
-    try {
-      const token = await getToken({ template: 'supabase' });
-      const newCard = await supabaseService.addFlashcard(user.id, cardData, token || undefined);
-      dispatch({ type: 'ADD_CARD', payload: newCard });
-    } catch (error) {
-      console.error('Failed to add card:', error);
-      dispatch({ type: 'SET_ERROR', payload: 'Failed to add card' });
+      setFlashcards(prev => prev.map(card => card.id === id ? data : card));
+      setHistory(prev => [...prev, `Updated: "${data.word}"`]);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(errorMessage);
+      throw err;
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
+      setLoading(false);
     }
-  }, [user, getToken]);
+  }, [user?.id]);
 
-  const updateCard = useCallback(async (id: string, updates: Partial<FlashcardData>) => {
-    if (!user) return;
+  // Delete flashcard
+  const deleteFlashcard = useCallback(async (id: string) => {
+    if (!user?.id) return;
 
-    dispatch({ type: 'SET_LOADING', payload: true });
-    
+    setLoading(true);
+    setError(null);
+
     try {
-      const token = await getToken({ template: 'supabase' });
-      const updatedCard = await supabaseService.updateFlashcard(user.id, id, updates, token || undefined);
-      dispatch({ type: 'UPDATE_CARD', payload: { id, data: updatedCard } });
-    } catch (error) {
-      console.error('Failed to update card:', error);
-      dispatch({ type: 'SET_ERROR', payload: 'Failed to update card' });
+      const cardToDelete = flashcards.find(card => card.id === id);
+      
+      const { error: deleteError } = await supabase
+        .from('flashcards')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id);
+
+      if (deleteError) {
+        throw new Error(`Failed to delete flashcard: ${deleteError.message}`);
+      }
+
+      setFlashcards(prev => prev.filter(card => card.id !== id));
+      if (cardToDelete) {
+        setHistory(prev => [...prev, `Deleted: "${cardToDelete.word}"`]);
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
+      setError(errorMessage);
+      throw err;
     } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
+      setLoading(false);
     }
-  }, [user, getToken]);
-
-  const deleteCard = useCallback(async (id: string) => {
-    if (!user) return;
-
-    dispatch({ type: 'SET_LOADING', payload: true });
-    
-    try {
-      const token = await getToken({ template: 'supabase' });
-      await supabaseService.deleteFlashcard(user.id, id, token || undefined);
-      dispatch({ type: 'DELETE_CARD', payload: id });
-    } catch (error) {
-      console.error('Failed to delete card:', error);
-      dispatch({ type: 'SET_ERROR', payload: 'Failed to delete card' });
-    } finally {
-      dispatch({ type: 'SET_LOADING', payload: false });
-    }
-  }, [user, getToken]);
-
-  const setCurrentIndex = useCallback((index: number) => {
-    dispatch({ type: 'SET_CURRENT_INDEX', payload: index });
-  }, []);
-
-  const setMode = useCallback((mode: 'study' | 'management') => {
-    dispatch({ type: 'SET_MODE', payload: mode });
-  }, []);
-
-  const flipCard = useCallback(() => {
-    dispatch({ type: 'FLIP_CARD' });
-  }, []);
-
-  const nextCard = useCallback(() => {
-    goToNextInHistory();
-  }, [goToNextInHistory]);
-
-  const previousCard = useCallback(() => {
-    goToPreviousCard();
-  }, [goToPreviousCard]);
-
-  const setLoading = useCallback((loading: boolean) => {
-    dispatch({ type: 'SET_LOADING', payload: loading });
-  }, []);
-
-  const setError = useCallback((error: string | null) => {
-    dispatch({ type: 'SET_ERROR', payload: error });
-  }, []);
+  }, [user?.id, flashcards]);
 
   const clearError = useCallback(() => {
-    dispatch({ type: 'SET_ERROR', payload: null });
+    setError(null);
   }, []);
 
-  // Computed values
-  const currentCard = state.cards[state.currentIndex] || null;
-  const hasCards = state.cards.length > 0;
-  const canGoNext = hasCards; // Always can go to random next
-  const canGoPrevious = hasCards && historyIndex > 0; // Can go back if there's history
+  const clearHistory = useCallback(() => {
+    setHistory([]);
+  }, []);
+
+  // Auto-fetch when user signs in
+  useEffect(() => {
+    if (isSignedIn && user?.id && !hasFetched) {
+      console.log('User signed in, fetching flashcards...');
+      fetchFlashcards();
+    } else if (!isSignedIn) {
+      // User not signed in, reset state
+      setFlashcards([]);
+      setHasFetched(false);
+      setLoading(false);
+    }
+  }, [isSignedIn, user?.id, hasFetched, fetchFlashcards]);
 
   return {
-    // State
-    ...state,
-    currentCard,
-    hasCards,
-    canGoNext,
-    canGoPrevious,
-    
-    // User state
+    flashcards,
+    loading,
+    error,
+    history,
     user,
-    isLoaded,
-    
-    // History state
-    viewedHistory,
-    historyIndex,
-    
-    // Actions
-    addCard,
-    updateCard,
-    deleteCard,
-    setCurrentIndex,
-    setMode,
-    flipCard,
-    nextCard,
-    previousCard,
-    setLoading,
-    setError,
+    addFlashcard,
+    updateFlashcard,
+    deleteFlashcard,
+    fetchFlashcards,
     clearError,
-    loadFlashcards,
-    migrateLocalData,
+    clearHistory
   };
 } 

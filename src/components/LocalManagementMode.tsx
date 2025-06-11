@@ -3,50 +3,48 @@ import { Plus, Play, Edit2, Trash2, ExternalLink } from 'lucide-react';
 import { CardForm } from './CardForm';
 import type { FlashcardData } from '../types';
 import { useNavigate } from 'react-router-dom';
+import { useFlashcardsLocal } from '../hooks/useFlashcardsLocal';
 
-interface ManagementModeProps {
-  flashcards: FlashcardData[];
-  addFlashcard: (cardData: Omit<FlashcardData, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
-  updateFlashcard: (id: string, updates: Partial<FlashcardData>) => Promise<void>;
-  deleteFlashcard: (id: string) => Promise<void>;
-  loading: boolean;
-}
-
-export function ManagementMode({ 
-  flashcards, 
-  addFlashcard, 
-  updateFlashcard, 
-  deleteFlashcard, 
-  loading: isLoading 
-}: ManagementModeProps) {
+export function LocalManagementMode() {
   const navigate = useNavigate();
+  const { 
+    cards, 
+    addCard, 
+    updateCard, 
+    deleteCard, 
+    isLoading, 
+    setMode 
+  } = useFlashcardsLocal();
+  
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingCard, setEditingCard] = useState<FlashcardData | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
-  const handleAddCard = async (cardData: Omit<FlashcardData, 'id' | 'createdAt' | 'updatedAt'>) => {
-    await addFlashcard(cardData);
+  const handleAddCard = (cardData: Omit<FlashcardData, 'id' | 'createdAt' | 'updatedAt'>) => {
+    addCard(cardData);
     setShowAddForm(false);
   };
 
-  const handleUpdateCard = async (cardData: Omit<FlashcardData, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const handleUpdateCard = (cardData: Omit<FlashcardData, 'id' | 'createdAt' | 'updatedAt'>) => {
     if (editingCard) {
-      await updateFlashcard(editingCard.id, cardData);
+      updateCard(editingCard.id, cardData);
       setEditingCard(null);
     }
   };
 
-  const handleDeleteCard = async (id: string) => {
-    await deleteFlashcard(id);
+  const handleDeleteCard = (id: string) => {
+    deleteCard(id);
     setDeleteConfirm(null);
   };
 
   const handleStartStudy = () => {
-    if (flashcards.length === 0) {
+    console.log('LocalManagementMode: Start Study clicked, cards.length =', cards.length);
+    if (cards.length === 0) {
       alert('Please add some flashcards first!');
       return;
     }
-    navigate('/study');
+    console.log('LocalManagementMode: Calling setMode(study)');
+    setMode('study');
   };
 
   const formatDate = (dateString: string) => {
@@ -97,11 +95,16 @@ export function ManagementMode({
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">Flashcards</h1>
+              <h1 className="text-3xl font-bold text-gray-800">
+                Flashcards 
+                <span className="ml-2 px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                  Local Mode
+                </span>
+              </h1>
               <p className="text-gray-600 mt-1">
-                {flashcards.length === 0 
+                {cards.length === 0 
                   ? 'No flashcards yet. Add your first card to get started!'
-                  : `${flashcards.length} card${flashcards.length === 1 ? '' : 's'} in your collection`
+                  : `${cards.length} card${cards.length === 1 ? '' : 's'} in your collection (stored locally)`
                 }
               </p>
             </div>
@@ -115,7 +118,7 @@ export function ManagementMode({
                 Add Card
               </button>
               
-              {flashcards.length > 0 && (
+              {cards.length > 0 && (
                 <button
                   onClick={handleStartStudy}
                   className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -131,18 +134,43 @@ export function ManagementMode({
 
       {/* Content */}
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {flashcards.length === 0 ? (
-          // Enhanced Welcome Hero Section
+        {cards.length === 0 ? (
+          // Enhanced Welcome Hero Section for Local Mode
           <div className="relative">
             {/* Decorative background elements */}
             <div className="absolute inset-0 overflow-hidden">
-              <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-100 rounded-full opacity-20"></div>
-              <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-green-100 rounded-full opacity-20"></div>
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-100 rounded-full opacity-10"></div>
+              <div className="absolute -top-40 -right-40 w-80 h-80 bg-yellow-100 rounded-full opacity-20"></div>
+              <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-orange-100 rounded-full opacity-20"></div>
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-amber-100 rounded-full opacity-10"></div>
             </div>
 
             {/* Main Hero Content */}
             <div className="relative text-center py-16">
+              {/* Local Mode Info */}
+              <div className="mb-8 bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg p-6">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                      <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                  <div className="flex-1 text-left">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">You're in Local Mode</h3>
+                    <p className="text-gray-600 mb-3">
+                      Your flashcards are saved locally on this device. Sign in to sync across devices and never lose your progress.
+                    </p>
+                    <button
+                      onClick={() => navigate('/login')}
+                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      Switch to Cloud Mode
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
                 <button
@@ -170,7 +198,7 @@ export function ManagementMode({
         ) : (
           // Cards grid
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {flashcards.map((card) => (
+            {cards.map((card) => (
               <div
                 key={card.id}
                 className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
